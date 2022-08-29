@@ -69,7 +69,7 @@ async function getTopLeveledDomain(domainResponse: { id: number, id_parent_domai
  * @param id domain id
  * @param acmeDns acme dns
  */
-function buildAndPutAcmeChallange(id: number, acmeDns: string = '_acme-challange') {
+function buildAndPutAcmeChallenge(id: number, acmeDns: string = '_acme-challenge') {
     ax.get(`dns/${id}`).then((r: AxiosResponse) => {
         let records = r.data.records;
         if (records.other.find((e: { host: string, ttl: number, type: string, value: string }) => e.host === acmeDns)) {
@@ -84,7 +84,7 @@ function buildAndPutAcmeChallange(id: number, acmeDns: string = '_acme-challange
             })
         }
         ax.put(`dns/${id}`, {records}).then((r: AxiosResponse) => {
-            console.log(`Successfully put acme challange(${acmeDns}) to DNS with id: ${r.data.id}`)
+            console.log(`Successfully put acme challenge(${acmeDns}) to DNS with id: ${r.data.id}`)
             process.exit(0);
         }).catch(e => {
             console.error(e);
@@ -96,11 +96,11 @@ function buildAndPutAcmeChallange(id: number, acmeDns: string = '_acme-challange
 ax.get(`domains/name/${domainConfig.alias}`).then((r: AxiosResponse) => {
     const domainResponse: { id: number, id_parent_domain: number } | any = r.data;
     if (domainResponse.id_parent_domain === 0) {
-        buildAndPutAcmeChallange(domainResponse.id)
+        buildAndPutAcmeChallenge(domainResponse.id)
     } else {
         getTopLeveledDomain(domainResponse).then((topLeveledDomain: { id: number, id_parent_domain: number, domain: string }) => {
             const subdomain = domainConfig.alias.replace(topLeveledDomain.domain,'').replace(/\.+$/,'');
-            buildAndPutAcmeChallange(topLeveledDomain.id,`_acme-challange.${subdomain}`)
+            buildAndPutAcmeChallenge(topLeveledDomain.id,`_acme-challenge.${subdomain}`)
         })
     }
 }).catch((e) => {

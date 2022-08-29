@@ -101,7 +101,7 @@ function getTopLeveledDomain(domainResponse) {
  * @param id domain id
  * @param acmeDns acme dns
  */
-function buildAndPutAcmeChallange(id, acmeDns = '_acme-challange') {
+function buildAndPutAcmeChallenge(id, acmeDns = '_acme-challenge') {
     ax.get(`dns/${id}`).then((r) => {
         let records = r.data.records;
         if (records.other.find((e) => e.host === acmeDns)) {
@@ -117,7 +117,7 @@ function buildAndPutAcmeChallange(id, acmeDns = '_acme-challange') {
             });
         }
         ax.put(`dns/${id}`, { records }).then((r) => {
-            console.log(`Successfully put acme challange(${acmeDns}) to DNS with id: ${r.data.id}`);
+            console.log(`Successfully put acme challenge(${acmeDns}) to DNS with id: ${r.data.id}`);
             process.exit(0);
         }).catch(e => {
             console.error(e);
@@ -128,12 +128,12 @@ function buildAndPutAcmeChallange(id, acmeDns = '_acme-challange') {
 ax.get(`domains/name/${domainConfig.alias}`).then((r) => {
     const domainResponse = r.data;
     if (domainResponse.id_parent_domain === 0) {
-        buildAndPutAcmeChallange(domainResponse.id);
+        buildAndPutAcmeChallenge(domainResponse.id);
     }
     else {
         getTopLeveledDomain(domainResponse).then((topLeveledDomain) => {
             const subdomain = domainConfig.alias.replace(topLeveledDomain.domain, '').replace(/\.+$/, '');
-            buildAndPutAcmeChallange(topLeveledDomain.id, `_acme-challange.${subdomain}`);
+            buildAndPutAcmeChallenge(topLeveledDomain.id, `_acme-challenge.${subdomain}`);
         });
     }
 }).catch((e) => {
