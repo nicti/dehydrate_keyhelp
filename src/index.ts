@@ -9,7 +9,8 @@ const argv: { domain: string, token: string, config: string } | any = yargs(proc
     // Data to change info
     domain: {type: 'string', required: true},
     token: {type: 'string', required: true},
-    config: {type: 'string', required: true}
+    config: {type: 'string', required: true},
+    delay: {type: 'number', required: false, default: 0}
 }).argv;
 
 // Verify domain name
@@ -69,7 +70,7 @@ async function getTopLeveledDomain(domainResponse: { id: number, id_parent_domai
  * @param id domain id
  * @param acmeDns acme dns
  */
-function buildAndPutAcmeChallenge(id: number, acmeDns: string = '_acme-challenge') {
+function buildAndPutAcmeChallenge(id: number, delay: number, acmeDns: string = '_acme-challenge') {
     ax.get(`dns/${id}`).then((r: AxiosResponse) => {
         let records = r.data.records;
         if (records.other.find((e: { host: string, ttl: number, type: string, value: string }) => e.host === acmeDns)) {
@@ -85,7 +86,9 @@ function buildAndPutAcmeChallenge(id: number, acmeDns: string = '_acme-challenge
         }
         ax.put(`dns/${id}`, {records}).then((r: AxiosResponse) => {
             console.log(`Successfully put acme challenge(${acmeDns}) to DNS with id: ${r.data.id}`)
-            process.exit(0);
+            setTimeout(() => {
+                process.exit(0);
+            },delay*1000);
         }).catch(e => {
             console.error(e);
             process.exit(-1);
@@ -96,11 +99,11 @@ function buildAndPutAcmeChallenge(id: number, acmeDns: string = '_acme-challenge
 ax.get(`domains/name/${domainConfig.alias}`).then((r: AxiosResponse) => {
     const domainResponse: { id: number, id_parent_domain: number } | any = r.data;
     if (domainResponse.id_parent_domain === 0) {
-        buildAndPutAcmeChallenge(domainResponse.id)
+        buildAndPutAcmeChallenge(domainResponse.id, argv.delay)
     } else {
         getTopLeveledDomain(domainResponse).then((topLeveledDomain: { id: number, id_parent_domain: number, domain: string }) => {
             const subdomain = domainConfig.alias.replace(topLeveledDomain.domain,'').replace(/\.+$/,'');
-            buildAndPutAcmeChallenge(topLeveledDomain.id,`_acme-challenge.${subdomain}`)
+            buildAndPutAcmeChallenge(topLeveledDomain.id, argv.delay, `_acme-challenge.${subdomain}`)
         })
     }
 }).catch((e) => {

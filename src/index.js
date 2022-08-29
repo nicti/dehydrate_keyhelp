@@ -41,7 +41,8 @@ const argv = yargs_1.default(process.argv.slice(2)).options({
     // Data to change info
     domain: { type: 'string', required: true },
     token: { type: 'string', required: true },
-    config: { type: 'string', required: true }
+    config: { type: 'string', required: true },
+    delay: { type: 'number', required: false, default: 0 }
 }).argv;
 // Verify domain name
 const domain = argv.domain;
@@ -101,7 +102,7 @@ function getTopLeveledDomain(domainResponse) {
  * @param id domain id
  * @param acmeDns acme dns
  */
-function buildAndPutAcmeChallenge(id, acmeDns = '_acme-challenge') {
+function buildAndPutAcmeChallenge(id, delay, acmeDns = '_acme-challenge') {
     ax.get(`dns/${id}`).then((r) => {
         let records = r.data.records;
         if (records.other.find((e) => e.host === acmeDns)) {
@@ -118,7 +119,9 @@ function buildAndPutAcmeChallenge(id, acmeDns = '_acme-challenge') {
         }
         ax.put(`dns/${id}`, { records }).then((r) => {
             console.log(`Successfully put acme challenge(${acmeDns}) to DNS with id: ${r.data.id}`);
-            process.exit(0);
+            setTimeout(() => {
+                process.exit(0);
+            }, delay * 1000);
         }).catch(e => {
             console.error(e);
             process.exit(-1);
@@ -128,12 +131,12 @@ function buildAndPutAcmeChallenge(id, acmeDns = '_acme-challenge') {
 ax.get(`domains/name/${domainConfig.alias}`).then((r) => {
     const domainResponse = r.data;
     if (domainResponse.id_parent_domain === 0) {
-        buildAndPutAcmeChallenge(domainResponse.id);
+        buildAndPutAcmeChallenge(domainResponse.id, argv.delay);
     }
     else {
         getTopLeveledDomain(domainResponse).then((topLeveledDomain) => {
             const subdomain = domainConfig.alias.replace(topLeveledDomain.domain, '').replace(/\.+$/, '');
-            buildAndPutAcmeChallenge(topLeveledDomain.id, `_acme-challenge.${subdomain}`);
+            buildAndPutAcmeChallenge(topLeveledDomain.id, argv.delay, `_acme-challenge.${subdomain}`);
         });
     }
 }).catch((e) => {
