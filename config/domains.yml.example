@@ -1,0 +1,5 @@
+domains:
+  <Domain identifier>:
+    alias: <DNS to prepare challange for>
+    endpoint: <Keyhelp domain>/api/v2/
+    apikey: <Keyhelp API Key>

@@ -1,0 +1,20 @@
+{
+  "name": "dehydrated_keyhelp",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "validator": "^13.7.0",
+    "yaml": "^2.1.1",
+    "yargs": "^17.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.13",
+    "@types/validator": "^13.7.6",
+    "@types/yargs": "^17.0.11"
+  },
+  "scripts": {
+    "test": "ts-node --prefer-ts-exts src/index.ts",
+    "start": "node src/index.js"
+  },
+  "main": "src/index.js",
+  "bin": "src/index.js"
+}
